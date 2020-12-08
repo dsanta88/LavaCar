@@ -1,0 +1,71 @@
+﻿@page "/empresaindex"
+@using LavaCar.Shared
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+@inject DialogService dialogService
+@inject ServicioSingleton singleton
+@using Newtonsoft.Json
+
+
+<RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="20"
+            AllowSorting="true" Data="@list" TItem="Empresa" ColumnWidth="200px">
+    <Columns>
+        <RadzenGridColumn TItem="Empresa" Property="Nombre" Title="Nombre"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Empresa" Property="Telefono" Title="Telefono" Width="50%"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Empresa" Property="Direccion" Title="Direccion" Width="50%"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Empresa" Property="Logo" Title="Logo" Width="50%"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Empresa" Context="Empresa" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Left" Width="100%">
+            <Template Context="Empresa">
+                @*<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="view_list" Text="Sedes" Size="ButtonSize.Medium" Click="@((args) =>Sedes(Empresa.Id))">
+                    </RadzenButton>*@
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="edit" Text="Editar" Size="ButtonSize.Medium" Click="@((args) =>Edit(Empresa.Id))">
+                </RadzenButton>
+            </Template>
+        </RadzenGridColumn>
+    </Columns>
+</RadzenGrid>
+
+
+@code {
+    private Response response;
+    List<Empresa> list = new List<Empresa>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+
+    void Edit(int id)
+    {
+
+        dialogService.Open<Form>("Editar",
+        new Dictionary<string, object>() { { "Id", singleton.EmpresaId } },
+        new DialogOptions() { Width = "700px", Height = "530px", Left = "calc(50% - 350px)", Top = "calc(50% - 265px)" });
+
+        dialogService.OnClose += RelaodDashBoard;
+
+    }
+
+    void RelaodDashBoard(dynamic result)
+    {
+        if(result!=null)
+        {
+            list = JsonConvert.DeserializeObject<List<Empresa>>(result.Data.ToString());
+            StateHasChanged();
+        }
+
+    }
+
+
+
+    protected async Task LoadData()
+    {
+        response = await Http.GetFromJsonAsync<Response>($"Empresas/{singleton.EmpresaId}");
+        if (response.IsSuccessful)
+        {
+            list = JsonConvert.DeserializeObject<List<Empresa>>(response.Data.ToString());
+        }
+    }
+}
+
