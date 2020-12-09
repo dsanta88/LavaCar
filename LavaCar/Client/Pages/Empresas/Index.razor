@@ -13,11 +13,15 @@
         <RadzenGridColumn TItem="Empresa" Property="Nombre" Title="Nombre"></RadzenGridColumn>
         <RadzenGridColumn TItem="Empresa" Property="Telefono" Title="Telefono" Width="50%"></RadzenGridColumn>
         <RadzenGridColumn TItem="Empresa" Property="Direccion" Title="Direccion" Width="50%"></RadzenGridColumn>
-        <RadzenGridColumn TItem="Empresa" Property="Logo" Title="Logo" Width="50%"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Empresa" Property="Logo" Title="Logo">
+            <Template Context="model">
+                <RadzenImage Path="@model.Logo" Style="width:150px" />
+            </Template>
+        </RadzenGridColumn>
         <RadzenGridColumn TItem="Empresa" Context="Empresa" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Left" Width="100%">
             <Template Context="Empresa">
                 @*<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="view_list" Text="Sedes" Size="ButtonSize.Medium" Click="@((args) =>Sedes(Empresa.Id))">
-                    </RadzenButton>*@
+                </RadzenButton>*@
                 <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="edit" Text="Editar" Size="ButtonSize.Medium" Click="@((args) =>Edit(Empresa.Id))">
                 </RadzenButton>
             </Template>
@@ -56,7 +60,6 @@
         }
 
     }
-
 
 
     protected async Task LoadData()

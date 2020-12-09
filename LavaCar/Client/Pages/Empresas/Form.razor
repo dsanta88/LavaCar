@@ -7,6 +7,9 @@
 @inject IJSRuntime js
 @inject DialogService dialogService
 @inject ServicioSingleton singleton
+@using System.IO
+@using BlazorInputFile
+@inject HttpClient http
 
 <div class="row">
     <div class="col-md-12">
@@ -49,11 +52,19 @@
                     <div class="col-md-2">
                         <RadzenLabel Text="Logo" />
                     </div>
-                    <div class="col-md-8">
-                        <RadzenTextBox MaxLength="256" style="display: block; width: 100%" @bind-Value="@(model.Logo)" Name="Logo">
-                        </RadzenTextBox>
+                    <div class="col-md-4">
+                        <InputFile OnChange="HandleSelection"></InputFile>
                     </div>
                 </div>
+                @if (imagePath != null)
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img style="width:200px" src="@imagePath" />
+                        </div>
+                    </div>
+
+                }
                 <hr />
                 <div class="row">
                     <div class="col-md-2"></div>
@@ -78,7 +89,7 @@
     string titulo = "";
     public Empresa model = new Empresa();
     Response response = new Response();
-
+    string imagePath = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,6 +102,10 @@
         model.Nombre = model.Nombre.ToUpper();
         model.Direccion = model.Direccion.ToUpper();
 
+        if(imagePath!=null)
+        {
+            model.Logo = imagePath;
+        }
 
         if (Id != 0)
         {
@@ -132,11 +147,59 @@
             if (response.IsSuccessful)
             {
                 model = JsonConvert.DeserializeObject<List<Empresa>>(response.Data.ToString()).FirstOrDefault();
+                if(model.Logo!=null)
+                {
+                    imagePath = model.Logo;
+                }
             }
         }
         else
         {
             titulo = "NUEVA EMPRESA";
+        }
+    }
+
+
+    async Task HandleSelection(IFileListEntry[] files)
+    {
+        string rutaBase = "/Upload/Logos";
+        imagePath = null;
+        var file = files.FirstOrDefault();
+        if (file != null)
+        {
+            var ms = new MemoryStream();
+            await file.Data.CopyToAsync(ms);
+            string extension = Path.GetExtension(file.Name);
+
+
+            if(model.Logo!=null)
+            {
+                FileModel objFile = new FileModel();
+                objFile.Ruta = $"{rutaBase}/{Path.GetFileName(model.Logo)}";
+                var result = await Http.PostAsJsonAsync<FileModel>("Upload/EliminarRuta", objFile);
+
+            }
+
+
+            string filename = $"logo-{singleton.EmpresaId}-{DateTime.Now.Year}{DateTime.Now.Day}{DateTime.Now.Minute}{DateTime.Now.Second}{extension}";
+
+            var content = new MultipartFormDataContent
+               {
+                    { new ByteArrayContent(ms.GetBuffer()),rutaBase,filename}
+                };
+            var response = await http.PostAsync("Upload", content);
+            string url = "..";
+            if (response.IsSuccessStatusCode)
+            {
+                var uploadFileName = await response.Content.ReadAsStringAsync();
+                if(uploadFileName!=null)
+                {
+
+                    imagePath = $"{url}/{uploadFileName}";
+                    model.Logo = imagePath;
+                    StateHasChanged();
+                }
+            }
         }
     }
 
