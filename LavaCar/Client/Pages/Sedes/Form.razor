@@ -1,5 +1,5 @@
-﻿@page "/formempresa"
-@page "/formempresa/{Id:int}"
+﻿@page "/sede-form"
+@page "/sede-form/{Id:int}"
 @using LavaCar.Shared
 @inject HttpClient Http
 @inject NavigationManager navigationManager
@@ -13,8 +13,8 @@
 
 <div class="row">
     <div class="col-md-12">
-        <RadzenTemplateForm TItem="Empresa" Data=@model Submit="@Save">
-            <RadzenFieldset Text="Empresa">
+        <RadzenTemplateForm TItem="Sede" Data=@model Submit="@Save">
+            <RadzenFieldset Text="Sede">
                 <div class="row">
                     <div class="col-md-2">
                         <RadzenLabel Text="Nombre" />
@@ -44,36 +44,42 @@
                     <div class="col-md-8">
                         <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Telefono)" Name="Telefono">
                         </RadzenTextBox><br />
-                        <RadzenRequiredValidator Component="Telefono" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
                 <br />
                 <div class="row">
                     <div class="col-md-2">
-                        <RadzenLabel Text="Logo" />
+                        <RadzenLabel Text="Email" />
                     </div>
-                    <div class="col-md-4">
-                        <InputFile OnChange="HandleSelection" ></InputFile>
-
-                  
+                    <div class="col-md-8">
+                        <RadzenTextBox style="width: 100%" Name="Email" @bind-Value=@model.Email />
                     </div>
                 </div>
-                @if (imagePath != null)
-                {
-             
+                <br />
                 <div class="row">
-                    <div class="col-md-2"> </div>
-
-                    <div class="col-md-6">
-                        <img style="width:200px" src="@imagePath" />
+                    <div class="col-md-2">
+                        <RadzenLabel Text="Celular" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Celular)" Name="Celular">
+                        </RadzenTextBox><br />
                     </div>
                 </div>
-
-                }
-                <hr />
+                <br />
                 <div class="row">
-                    <div class="col-md-2"></div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <RadzenLabel Text="Estado" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenDropDown AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="model.Estado" Multiple="false" Placeholder="Select..." Data="@lstEstados" TextProperty="Descripcion" ValueProperty="Codigo"
+                                        Style="margin-bottom: 20px; width:50%;" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-2">
+                    </div>
+                    <div class="col-md-5">
                         <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Guardar" ButtonStyle="ButtonStyle.Success">
                         </RadzenButton>
                     </div>
@@ -82,64 +88,89 @@
                         </RadzenButton>
                     </div>
                 </div>
-</RadzenFieldset>
+            </RadzenFieldset>
         </RadzenTemplateForm>
     </div>
 </div>
 <br />
+
+<br />
 @code {
 
-    [Parameter]
-    public int Id { get; set; }
+    [Parameter] public int Id { get; set; }
+
+
     string titulo = "";
-    public Empresa model = new Empresa();
+    public Sede model = new Sede();
     Response response = new Response();
-    string imagePath = null;
+    public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
+    bool popup;
+
 
     protected override async Task OnInitializedAsync()
     {
+        getEstados();
         await LoadData();
     }
 
+
     protected async Task Save()
     {
-
+        model.EmpresaId = singleton.EmpresaId;
         model.Nombre = model.Nombre.ToUpper();
         model.Direccion = model.Direccion.ToUpper();
 
-        if(imagePath!=null)
+
+        if (model.Telefono.Length != 7)
         {
-            model.Logo = imagePath;
+            await js.InvokeAsync<string>("MensajeAlerta", "El télefono debe tener 7 digitos.");
+            return;
         }
+
+        if (model.Celular.Length > 0)
+        {
+            if (model.Celular.Length != 10)
+            {
+                await js.InvokeAsync<string>("MensajeAlerta", "El celular debe tener 11 digitos.");
+                return;
+            }
+        }
+
+        if (!model.Email.Contains("@"))
+        {
+            await js.InvokeAsync<string>("MensajeAlerta", "Email invalido.");
+            return;
+        }
+
+
 
         if (Id != 0)
         {
 
-            var result = await Http.PutAsJsonAsync<Empresa>($"empresas", model);
+            var result = await Http.PutAsJsonAsync<Sede>($"sedes", model);
             response = result.Content.ReadFromJsonAsync<Response>().Result;
         }
         else
         {
-            var result = await Http.PostAsJsonAsync<Empresa>($"empresas", model);
+
+            var result = await Http.PostAsJsonAsync<Sede>($"sedes", model);
             response = result.Content.ReadFromJsonAsync<Response>().Result;
         }
 
-
         if (response.IsSuccessful)
         {
-            response = await Http.GetFromJsonAsync<Response>($"Empresas/{singleton.EmpresaId}");
+            response = await Http.GetFromJsonAsync<Response>($"sedes/GetSedesxEmpresa/{singleton.EmpresaId}");
             dialogService.Close(response);
         }
         else
         {
             await js.InvokeAsync<string>("MensajeAlerta", response.Message);
         }
-
     }
 
-    protected async Task Cancelar()
+    public void Cancelar()
     {
-        dialogService.Close();
+        dialogService.Close(response);
     }
 
 
@@ -147,68 +178,28 @@
     {
         if (Id > 0)
         {
-            titulo = "EDITAR EMPRESA";
-            response = await Http.GetFromJsonAsync<Response>($"empresas/{Id}");
+            titulo = "EDITAR SEDE";
+            response = await Http.GetFromJsonAsync<Response>($"sedes/{Id}");
             if (response.IsSuccessful)
             {
-                model = JsonConvert.DeserializeObject<List<Empresa>>(response.Data.ToString()).FirstOrDefault();
-                if(model.Logo!=null)
-                {
-                    imagePath = model.Logo;
-                }
+                model = JsonConvert.DeserializeObject<Sede>(response.Data.ToString());
             }
         }
         else
         {
-            titulo = "NUEVA EMPRESA";
+            titulo = "NUEVA SEDE";
         }
     }
 
-
-
-
-    async Task HandleSelection(IFileListEntry[] files)
+    public List<EstadoAuxiliar> getEstados()
     {
-        string rutaBase = "/Upload/Logos";
-        imagePath = null;
-        var file = files.FirstOrDefault();
-        if (file != null)
-        {
-            var ms = new MemoryStream();
-            await file.Data.CopyToAsync(ms);
-            string extension = Path.GetExtension(file.Name);
+        lstEstados = new List<EstadoAuxiliar>
+      {
+      new EstadoAuxiliar {  Codigo = "A", Descripcion= "ACTIVO" },
+      new EstadoAuxiliar { Codigo = "I", Descripcion = "INACTIVO" }
+      };
 
-
-            if (model.Logo != null)
-            {
-                FileModel objFile = new FileModel();
-                objFile.Ruta = $"{rutaBase}/{Path.GetFileName(model.Logo)}";
-                var result = await Http.PostAsJsonAsync<FileModel>("Upload/EliminarRuta", objFile);
-
-            }
-
-
-            string filename = $"logo-{singleton.EmpresaId}-{DateTime.Now.Year}{DateTime.Now.Day}{DateTime.Now.Minute}{DateTime.Now.Second}{extension}";
-
-            var content = new MultipartFormDataContent
-               {
-                    { new ByteArrayContent(ms.GetBuffer()),rutaBase,filename}
-                };
-
-            var response = await http.PostAsync("Upload", content);
-            string url = "..";
-            if (response.IsSuccessStatusCode)
-            {
-                var uploadFileName = await response.Content.ReadAsStringAsync();
-                if (uploadFileName != null)
-                {
-
-                    imagePath = $"{url}/{uploadFileName}";
-                    model.Logo = imagePath;
-                    StateHasChanged();
-                }
-            }
-        }
+        return lstEstados;
     }
 
 }

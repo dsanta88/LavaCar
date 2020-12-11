@@ -30,7 +30,7 @@ namespace LavaCar.Server.Controllers
             {
                 foreach (var file in HttpContext.Request.Form.Files)
                 {
-                    path_temp = $"Upload/Logos/{file.FileName}";
+                    path_temp = $"{file.Name}{file.FileName}";
                     var path = Path.Combine(_envioment.ContentRootPath, $"wwwroot/{path_temp}");
                 
                     using (var stream = new FileStream(path, FileMode.Create))
@@ -45,8 +45,10 @@ namespace LavaCar.Server.Controllers
         [HttpPost("[action]")]
         public IActionResult EliminarRuta(FileModel file)
         {
-            var path = Path.Combine(_envioment.ContentRootPath, $"wwwroot/{file.Ruta}");
 
+
+            var path = Path.Combine(_envioment.ContentRootPath, $"wwwroot/{file.Ruta}");
+          
             if (System.IO.File.Exists(path))
             {
                 System.IO.File.Delete(path);

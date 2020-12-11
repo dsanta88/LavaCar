@@ -11,5 +11,6 @@ namespace LavaCar.Shared
 
         public string Ruta { get; set; }
 
+
     }
 }

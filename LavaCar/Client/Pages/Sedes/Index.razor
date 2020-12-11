@@ -1,0 +1,141 @@
+﻿
+@page "/sede-index/{IdEmpresa:int}"
+@using LavaCar.Shared
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+@using Newtonsoft.Json;
+@*@inject IModalService modal*@
+@inject DialogService dialogService
+
+<div class="row alert bg-info">
+    <div class="col-md-5">
+        <h5> <b>SEDES</b></h5>
+    </div>
+</div>
+
+
+<RadzenButton Text=@("Nuevo") Click=@Add  ButtonStyle="ButtonStyle.Success"/>
+
+
+
+<RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="20"
+            AllowSorting="true" Data="@list" TItem="Sede" ColumnWidth="200px">
+    <Columns>
+        <RadzenGridColumn TItem="Sede" Property="Nombre" Title="Nombre"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Sede" Property="Telefono" Title="Teléfono"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Sede" Property="Celular" Title="Celular"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Sede" Property="Email" Title="Email"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Sede" Property="Direccion" Title="Dirección"></RadzenGridColumn>
+
+        <RadzenGridColumn TItem="Sede" Property="Estado" Title="Estado">
+            <Template Context="data">
+
+                @if (data.Estado == "A")
+                {
+                    <RadzenCheckBox Value="true"
+                                    TValue="bool">
+                    </RadzenCheckBox>
+                }
+                else
+                {
+                    <RadzenCheckBox Value="false"
+                                    TValue="bool">
+                    </RadzenCheckBox>
+                }
+
+            </Template>
+        </RadzenGridColumn>
+
+        <RadzenGridColumn TItem="Sede" Context="Sede" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Left" Width="100%">
+            <Template Context="Sede">
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="view_list" Text="Tipo Vehiculos" Size="ButtonSize.Medium" Click="@((args) =>TiposVehiculos(Sede.Id))">
+                </RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="edit" Text="Editar" Size="ButtonSize.Medium" Click="@((args) =>Edit(Sede.Id))">
+                </RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Text="Eliminar" Size="ButtonSize.Medium" Click="@((args) =>Delete(Sede.Id))">
+                </RadzenButton>
+            </Template>
+        </RadzenGridColumn>
+    </Columns>
+</RadzenGrid>
+
+<hr />
+<div class="col-md-2">
+    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="arrow_back" Text="Retornar" Size="ButtonSize.Medium" Click="@Retornar">
+    </RadzenButton>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public int IdEmpresa { get; set; }
+
+
+    List<Sede> list;
+    Response response = new Response();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    protected async Task LoadData()
+    {
+        response = await Http.GetFromJsonAsync<Response>($"sedes/GetSedesxEmpresa/{IdEmpresa}");
+        if (response.IsSuccessful)
+        {
+            list = JsonConvert.DeserializeObject<List<Sede>>(response.Data.ToString());
+        }
+    }
+
+
+    public void Add()
+    {
+        OpenForm(0, "Nueva Sede");
+    }
+
+    void Edit(int id)
+    {
+        OpenForm(id, "Editar Sede");
+    }
+
+
+    void OpenForm(int id, string accion)
+    {
+        dialogService.Open<Form>(accion,
+              new Dictionary<string, object>() { { "Id", id } },
+              new DialogOptions() { Width = "700px", Height = "700px" });
+
+        dialogService.OnClose += RelaodDashBoard;
+    }
+
+
+
+    void RelaodDashBoard(dynamic result)
+    {
+        if (result != null)
+        {
+            list = JsonConvert.DeserializeObject<List<Sede>>(result.Data.ToString());
+            StateHasChanged();
+        }
+
+    }
+
+
+    public void TiposVehiculos(int id)
+    {
+        navigationManager.NavigateTo("/indextipovehiculo/" + id);
+    }
+
+
+    public void Delete(int id)
+    {
+        navigationManager.NavigateTo("/deletesede/" + id);
+    }
+
+    public void Retornar()
+    {
+        navigationManager.NavigateTo("/empresa-index");
+    }
+}

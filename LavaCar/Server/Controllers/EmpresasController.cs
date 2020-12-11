@@ -45,6 +45,8 @@ namespace LavaCar.Server.Controllers
         [HttpPut]
         public IActionResult Edit(Empresa model)
         {
+
+        
             Response response = new Response();
             try
             {

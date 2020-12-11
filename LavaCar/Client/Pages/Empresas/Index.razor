@@ -1,4 +1,4 @@
-﻿@page "/empresaindex"
+﻿@page "/empresa-index"
 @using LavaCar.Shared
 @inject HttpClient Http
 @inject NavigationManager navigationManager
@@ -20,10 +20,9 @@
         </RadzenGridColumn>
         <RadzenGridColumn TItem="Empresa" Context="Empresa" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Left" Width="100%">
             <Template Context="Empresa">
-                @*<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="view_list" Text="Sedes" Size="ButtonSize.Medium" Click="@((args) =>Sedes(Empresa.Id))">
-                </RadzenButton>*@
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="edit" Text="Editar" Size="ButtonSize.Medium" Click="@((args) =>Edit(Empresa.Id))">
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="view_list" Text="Sedes" Size="ButtonSize.Medium" Click="@((args) =>Sedes(Empresa.Id))">
                 </RadzenButton>
+             
             </Template>
         </RadzenGridColumn>
     </Columns>
@@ -43,9 +42,9 @@
     void Edit(int id)
     {
 
-        dialogService.Open<Form>("Editar",
+        dialogService.Open<Form>("Editar Empresa",
         new Dictionary<string, object>() { { "Id", singleton.EmpresaId } },
-        new DialogOptions() { Width = "700px", Height = "530px", Left = "calc(50% - 350px)", Top = "calc(50% - 265px)" });
+        new DialogOptions() { Width = "800px", Height = "700px"});
 
         dialogService.OnClose += RelaodDashBoard;
 
@@ -59,6 +58,11 @@
             StateHasChanged();
         }
 
+    }
+
+    public void Sedes(int id)
+    {
+        navigationManager.NavigateTo("/sede-index/" + id);
     }
 
 
