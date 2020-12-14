@@ -1,5 +1,5 @@
-﻿@page "/sede-form"
-@page "/sede-form/{Id:int}"
+﻿@page "/tipovehiculo-index"
+@page "/tipovehiculo-index/{Id:int}/{SedeId}"
 @using LavaCar.Shared
 @inject HttpClient Http
 @inject NavigationManager navigationManager
@@ -7,13 +7,11 @@
 @inject IJSRuntime js
 @inject DialogService dialogService
 @inject ServicioSingleton singleton
-@using System.IO
-@using BlazorInputFile
 @inject HttpClient http
 
 <div class="row">
     <div class="col-md-12">
-        <RadzenTemplateForm TItem="Sede" Data=@model Submit="@Save">
+        <RadzenTemplateForm TItem="TipoVehiculo" Data=@model Submit="@Save">
             <RadzenFieldset Text="Sede">
                 <div class="row">
                     <div class="col-md-2">
@@ -28,51 +26,11 @@
                 <br />
                 <div class="row">
                     <div class="col-md-2">
-                        <RadzenLabel Text="Dirección" />
-                    </div>
-                    <div class="col-md-8">
-                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Direccion)" Name="Direccion">
-                        </RadzenTextBox><br />
-                        <RadzenRequiredValidator Component="Direccion" Text="Campo Requerido" Style="position: absolute" />
-                    </div>
-                </div>
-                <br />
-                <div class="row">
-                    <div class="col-md-2">
-                        <RadzenLabel Text="Teléfono" />
-                    </div>
-                    <div class="col-md-8">
-                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Telefono)" Name="Telefono">
-                        </RadzenTextBox><br />
-                    </div>
-                </div>
-                <br />
-                <div class="row">
-                    <div class="col-md-2">
-                        <RadzenLabel Text="Email" />
-                    </div>
-                    <div class="col-md-8">
-                        <RadzenTextBox style="width: 100%" Name="Email" @bind-Value=@model.Email />
-                    </div>
-                </div>
-                <br />
-                <div class="row">
-                    <div class="col-md-2">
-                        <RadzenLabel Text="Celular" />
-                    </div>
-                    <div class="col-md-8">
-                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Celular)" Name="Celular">
-                        </RadzenTextBox>
-                    </div>
-                </div>
-                <br />
-                <div class="row">
-                    <div class="col-md-2">
                         <RadzenLabel Text="Estado" />
                     </div>
-                    <div class="col-md-8"> 
+                    <div class="col-md-8">
                         <RadzenDropDown AllowClear="true" AllowFiltering="true" Name="Estado" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="model.Estado" Multiple="false" Placeholder="Select..." Data="@lstEstados" TextProperty="Descripcion" ValueProperty="Codigo"
-                                        Style="margin-bottom: 20px; width:50%;" /><br/>
+                                        Style="margin-bottom: 20px; width:100%;" /><br />
                         <RadzenRequiredValidator Component="Estado" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
@@ -99,13 +57,11 @@
 @code {
 
     [Parameter] public int Id { get; set; }
+    [Parameter] public int SedeId { get; set; }
 
-
-    string titulo = "";
-    public Sede model = new Sede();
+    public TipoVehiculo model = new TipoVehiculo();
     Response response = new Response();
     public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
-    bool popup;
 
 
     protected override async Task OnInitializedAsync()
@@ -117,54 +73,26 @@
 
     protected async Task Save()
     {
-        model.EmpresaId = singleton.EmpresaId;
+        model.SedeId = SedeId;
         model.Nombre = model.Nombre.ToUpper();
-        model.Direccion = model.Direccion.ToUpper();
-
-
-        if (model.Telefono.Length != 7)
-        {
-            await js.InvokeAsync<string>("MensajeAlerta", "El télefono debe tener 7 digitos.");
-            return;
-        }
-
-        if (model.Celular.Length > 0)
-        {
-            if (model.Celular.Length != 10)
-            {
-                await js.InvokeAsync<string>("MensajeAlerta", "El celular debe tener 11 digitos.");
-                return;
-            }
-        }
-
-        if(model.Email!=null)
-        {
-            if (!model.Email.Contains("@"))
-            {
-                await js.InvokeAsync<string>("MensajeAlerta", "Email invalido.");
-                return;
-            }
-
-        }
-
 
 
         if (Id != 0)
         {
 
-            var result = await Http.PutAsJsonAsync<Sede>($"sedes", model);
+            var result = await Http.PutAsJsonAsync<TipoVehiculo>($"TipoVehiculos", model);
             response = result.Content.ReadFromJsonAsync<Response>().Result;
         }
         else
         {
 
-            var result = await Http.PostAsJsonAsync<Sede>($"sedes", model);
+            var result = await Http.PostAsJsonAsync<TipoVehiculo>($"TipoVehiculos", model);
             response = result.Content.ReadFromJsonAsync<Response>().Result;
         }
 
         if (response.IsSuccessful)
         {
-            response = await Http.GetFromJsonAsync<Response>($"sedes/GetSedesxEmpresa/{singleton.EmpresaId}");
+            response = await Http.GetFromJsonAsync<Response>($"TipoVehiculos/GetTipoVehiculosXSede/{SedeId}");
             dialogService.Close(response);
         }
         else
@@ -185,23 +113,18 @@
     {
         if (Id > 0)
         {
-            titulo = "EDITAR SEDE";
-            response = await Http.GetFromJsonAsync<Response>($"sedes/{Id}");
+            response = await Http.GetFromJsonAsync<Response>($"TipoVehiculos/{Id}");
             if (response.IsSuccessful)
             {
-                model = JsonConvert.DeserializeObject<Sede>(response.Data.ToString());
+                model = JsonConvert.DeserializeObject<TipoVehiculo>(response.Data.ToString());
             }
-        }
-        else
-        {
-            titulo = "NUEVA SEDE";
         }
     }
 
     public List<EstadoAuxiliar> getEstados()
     {
         lstEstados = new List<EstadoAuxiliar>
-      {
+{
       new EstadoAuxiliar {  Codigo = "A", Descripcion= "ACTIVO" },
       new EstadoAuxiliar { Codigo = "I", Descripcion = "INACTIVO" }
       };
