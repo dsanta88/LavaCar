@@ -1,5 +1,5 @@
-﻿@page "/tipovehiculo-form"
-@page "/tipovehiculo-form/{Id:int}/{SedeId}"
+﻿@page "/servicio-form"
+@page "/servicio-form/{Id:int}/{TipoVehiculoId}"
 @using LavaCar.Shared
 @inject HttpClient Http
 @inject NavigationManager navigationManager
@@ -11,10 +11,10 @@
 
 <div class="row">
     <div class="col-md-12">
-        <RadzenTemplateForm TItem="TipoVehiculo" Data=@model Submit="@Save">
-            <RadzenFieldset Text="Tipo Vehiculo">
+        <RadzenTemplateForm TItem="Servicio" Data=@model Submit="@Save">
+            <RadzenFieldset Text="Servicio">
                 <div class="row">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <RadzenLabel Text="Nombre" />
                     </div>
                     <div class="col-md-8">
@@ -25,7 +25,27 @@
                 </div>
                 <br />
                 <div class="row">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Valor" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenNumeric TValue="decimal" @bind-Value="@(model.Valor)" Name="Valor" /><br />
+                        <RadzenRequiredValidator Component="Valor" Text="Campo Requerido" Style="position: absolute" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Descripción" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextArea  MaxLength="100" style="width: 100%" @bind-Value="@(model.Descripcion)">
+                        </RadzenTextArea><br />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
                         <RadzenLabel Text="Estado" />
                     </div>
                     <div class="col-md-8">
@@ -36,7 +56,7 @@
                 </div>
                 <br />
                 <div class="row">
-                    <div class="col-md-1">
+                    <div class="col-md-2">
                     </div>
                     <div class="col-md-5">
                         <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Guardar" ButtonStyle="ButtonStyle.Success">
@@ -57,9 +77,9 @@
 @code {
 
     [Parameter] public int Id { get; set; }
-    [Parameter] public int SedeId { get; set; }
+    [Parameter] public int TipoVehiculoId { get; set; }
 
-    public TipoVehiculo model = new TipoVehiculo();
+    public Servicio model = new Servicio();
     Response response = new Response();
     public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
 
@@ -73,26 +93,26 @@
 
     protected async Task Save()
     {
-        model.SedeId = SedeId;
+        model.TipoVehiculoId = TipoVehiculoId;
         model.Nombre = model.Nombre.ToUpper();
 
 
         if (Id != 0)
         {
 
-            var result = await Http.PutAsJsonAsync<TipoVehiculo>($"TipoVehiculos", model);
+            var result = await Http.PutAsJsonAsync<Servicio>($"Servicios", model);
             response = result.Content.ReadFromJsonAsync<Response>().Result;
         }
         else
         {
 
-            var result = await Http.PostAsJsonAsync<TipoVehiculo>($"TipoVehiculos", model);
+            var result = await Http.PostAsJsonAsync<Servicio>($"Servicios", model);
             response = result.Content.ReadFromJsonAsync<Response>().Result;
         }
 
         if (response.IsSuccessful)
         {
-            response = await Http.GetFromJsonAsync<Response>($"TipoVehiculos/GetTipoVehiculosXSede/{SedeId}");
+            response = await Http.GetFromJsonAsync<Response>($"Servicios/GetServiciosXTipoVehiculo/{TipoVehiculoId}");
             dialogService.Close(response);
         }
         else
@@ -113,10 +133,10 @@
     {
         if (Id > 0)
         {
-            response = await Http.GetFromJsonAsync<Response>($"TipoVehiculos/{Id}");
+            response = await Http.GetFromJsonAsync<Response>($"Servicios/{Id}");
             if (response.IsSuccessful)
             {
-                model = JsonConvert.DeserializeObject<TipoVehiculo>(response.Data.ToString());
+                model = JsonConvert.DeserializeObject<Servicio>(response.Data.ToString());
             }
         }
     }

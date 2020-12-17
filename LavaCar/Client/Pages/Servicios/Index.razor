@@ -1,5 +1,5 @@
 ﻿
-@page "/tipovehiculo-index/{SedeId:int}"
+@page "/servicio-index/{TipoVehiculoId:int}"
 @using LavaCar.Shared
 @inject HttpClient Http
 @inject NavigationManager navigationManager
@@ -10,21 +10,21 @@
 
 <div class="row alert bg-info">
     <div class="col-md-5">
-        <h5> <b>SEDES</b></h5>
+        <h5> <b>SERVICIOS</b></h5>
     </div>
 </div>
 
 
-<RadzenButton Text=@("Nuevo") Click=@Add ButtonStyle="ButtonStyle.Success" />
-
+<RadzenButton Text=@("Nuevo") Click=@Add ButtonStyle="ButtonStyle.Success"/>
 
 
 <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="20"
-            AllowSorting="true" Data="@list" TItem="TipoVehiculo" ColumnWidth="200px">
+            AllowSorting="true" Data="@list" TItem="Servicio" ColumnWidth="200px">
     <Columns>
-        <RadzenGridColumn TItem="TipoVehiculo" Property="Nombre" Title="Nombre"></RadzenGridColumn>
-
-        <RadzenGridColumn TItem="TipoVehiculo" Property="Estado" Title="Estado">
+        <RadzenGridColumn TItem="Servicio" Property="Nombre" Title="Nombre"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Servicio" Property="Valor" Title="Valor"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Servicio" Property="Descripcion" Title="Descripcón"></RadzenGridColumn>
+        <RadzenGridColumn TItem="Servicio" Property="Estado" Title="Estado">
             <Template Context="data">
 
                 @if (data.Estado == "A")
@@ -42,21 +42,18 @@
 
             </Template>
         </RadzenGridColumn>
-
-        <RadzenGridColumn TItem="TipoVehiculo" Context="TipoVehiculo" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Left" Width="100%">
-            <Template Context="TipoVehiculo">
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="view_list" Text="Servicios" Size="ButtonSize.Medium" Click="@((args) =>Servicios(TipoVehiculo.Id))">
+        <RadzenGridColumn TItem="Servicio" Context="Servicio" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Left" Width="100%">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="edit" Text="Editar" Size="ButtonSize.Medium" Click="@((args) =>Edit(data.Id))">
                 </RadzenButton>
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="edit" Text="Editar" Size="ButtonSize.Medium" Click="@((args) =>Edit(TipoVehiculo.Id))">
-                </RadzenButton>
-                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Text="Eliminar" Size="ButtonSize.Medium" Click="@((args) =>Delete(TipoVehiculo.Id))">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Text="Eliminar" Size="ButtonSize.Medium" Click="@((args) =>Delete(data.Id))">
                 </RadzenButton>
             </Template>
         </RadzenGridColumn>
     </Columns>
 </RadzenGrid>
 
-<hr />
+<hr/>
 <div class="col-md-2">
     <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="arrow_back" Text="Retornar" Size="ButtonSize.Medium" Click="@Retornar">
     </RadzenButton>
@@ -66,10 +63,10 @@
 @code {
 
     [Parameter]
-    public int SedeId { get; set; }
+    public int TipoVehiculoId { get; set; }
 
 
-    List<TipoVehiculo> list;
+    List<Servicio> list;
     public int EmpresaId = 0;
     Response response = new Response();
 
@@ -80,30 +77,30 @@
 
     protected async Task LoadData()
     {
-        response = await Http.GetFromJsonAsync<Response>($"TipoVehiculos/GetTipoVehiculosXSede/{SedeId}");
+        response = await Http.GetFromJsonAsync<Response>($"Servicios/GetServiciosXTipoVehiculo/{TipoVehiculoId}");
         if (response.IsSuccessful)
         {
-            list = JsonConvert.DeserializeObject<List<TipoVehiculo>>(response.Data.ToString());
+            list = JsonConvert.DeserializeObject<List<Servicio>>(response.Data.ToString());
         }
     }
 
 
     public void Add()
     {
-        OpenForm(0, "Nuevo Tipo Vehiculo");
+        OpenForm(0, "Nuevo Servicio");
     }
 
     void Edit(int id)
     {
-        OpenForm(id, "Editar Tipo Vehiculo");
+        OpenForm(id, "Editar Servicio");
     }
 
 
     void OpenForm(int id, string accion)
     {
         dialogService.Open<Form>(accion,
-              new Dictionary<string, object>() { { "Id", id }, { "SedeId", SedeId } },
-              new DialogOptions() { Width = "500px", Height = "400px" });
+              new Dictionary<string, object>() { { "Id", id }, { "TipoVehiculoId", TipoVehiculoId } },
+              new DialogOptions() { Width = "700px", Height = "500px" });
 
         dialogService.OnClose += RelaodDashBoard;
     }
@@ -114,16 +111,10 @@
     {
         if (result != null)
         {
-            list = JsonConvert.DeserializeObject<List<TipoVehiculo>>(result.Data.ToString());
+            list = JsonConvert.DeserializeObject<List<Servicio>>(result.Data.ToString());
             StateHasChanged();
         }
 
-    }
-
-
-    public void Servicios(int id)
-    {
-        navigationManager.NavigateTo("/servicio-index/" + id);
     }
 
 
@@ -131,10 +122,17 @@
     {
         dialogService.Open<Delete>("Eliminar",
           new Dictionary<string, object>() { { "Id", id } },
-          new DialogOptions() { Width = "500px", Height = "500px" });
+          new DialogOptions() { Width = "700px", Height = "700px" });
 
         dialogService.OnClose += RelaodDashBoard;
     }
+
+    public void TiposVehiculos(int id)
+    {
+        navigationManager.NavigateTo("/indextipovehiculo/" + id);
+    }
+
+
 
     public void Retornar()
     {

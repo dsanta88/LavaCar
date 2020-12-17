@@ -6,7 +6,11 @@
 @inject ServicioSingleton singleton
 @using Newtonsoft.Json
 
-
+<div class="row alert bg-info">
+    <div class="col-md-5">
+        <h5> <b>EMPRESA</b></h5>
+    </div>
+</div>
 <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="20"
             AllowSorting="true" Data="@list" TItem="Empresa" ColumnWidth="200px">
     <Columns>
@@ -22,7 +26,8 @@
             <Template Context="Empresa">
                 <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="view_list" Text="Sedes" Size="ButtonSize.Medium" Click="@((args) =>Sedes(Empresa.Id))">
                 </RadzenButton>
-             
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="edit" Text="Editar" Size="ButtonSize.Medium" Click="@((args) =>Edit(Empresa.Id))">
+                </RadzenButton>
             </Template>
         </RadzenGridColumn>
     </Columns>
