@@ -1,0 +1,283 @@
+﻿@page "/empleado"
+@page "/empleado-form/{Id:int}"
+@using LavaCar.Shared
+@using Newtonsoft.Json;
+@using System.IO
+@using BlazorInputFile
+@using Helpers
+@inject HttpClient http
+@inject IJSRuntime js
+@inject DialogService dialogService
+@inject ServicioSingleton singleton
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+
+<div class="row">
+    <div class="col-md-12">
+        <RadzenTemplateForm TItem="Usuario" Data=@model Submit="@Save">
+            <RadzenFieldset Text="Empleado">
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Nombre" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.NombreCompleto)" Name="Nombre">
+                        </RadzenTextBox><br />
+                        <RadzenRequiredValidator Component="Nombre" Text="Campo Requerido" Style="position: absolute" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Dirección" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Direccion)" Name="Direccion">
+                        </RadzenTextBox><br />
+                        <RadzenRequiredValidator Component="Direccion" Text="Campo Requerido" Style="position: absolute" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Email" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Email)" Name="Email">
+                        </RadzenTextBox><br />
+                        <RadzenRequiredValidator Component="Email" Text="Campo Requerido" Style="position: absolute" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Teléfono" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextBox MaxLength="7" style="width: 100%" @bind-Value="@(model.Telefono)">
+                        </RadzenTextBox><br />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Celular" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextBox MaxLength="10" style="width: 100%" @bind-Value="@(model.Celular)" Name="Celular">
+                        </RadzenTextBox><br />
+                        <RadzenRequiredValidator Component="Celular" Text="Campo Requerido" Style="position: absolute" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Observación" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextArea MaxLength="2000" style="width: 100%" @bind-Value="@(model.Observacion)">
+                        </RadzenTextArea><br />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Estado" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenDropDown AllowClear="true" AllowFiltering="true" Name="Estado" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="model.Estado" Multiple="false" Placeholder="Select..." Data="@lstEstados" TextProperty="Descripcion" ValueProperty="Codigo"
+                                        Style="margin-bottom: 20px; width:100%;" /><br />
+                        <RadzenRequiredValidator Component="Estado" Text="Campo Requerido" Style="position: absolute" />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Foto" />
+                    </div>
+                    <div class="col-md-4">
+                        <InputFile OnChange="HandleSelection"></InputFile>
+
+
+                    </div>
+                </div>
+                @if (imagePath != null)
+                {
+
+                    <div class="row">
+                        <div class="col-md-3"> </div>
+
+                        <div class="col-md-6">
+                            <img style="width:200px" src="@imagePath" />
+                        </div>
+                    </div>
+
+                }
+                <hr />
+                <div class="row">
+                    <div class="col-md-3"></div>
+                    <div class="col-md-4">
+                        <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Guardar" ButtonStyle="ButtonStyle.Success">
+                        </RadzenButton>
+                    </div>
+                    <div class="col-md-4">
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Text="Cancelar" Click="@Cancelar">
+                        </RadzenButton>
+                    </div>
+                </div>
+            </RadzenFieldset>
+        </RadzenTemplateForm>
+    </div>
+</div>
+<br />
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+    string titulo = "";
+    public Usuario model = new Usuario();
+    Response response = new Response();
+    string imagePath = null;
+    public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
+    public Generico generico = new Generico();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    protected async Task Save()
+    {
+
+        model.NombreCompleto = model.NombreCompleto.ToUpper();
+        model.NombreCompleto = model.NombreCompleto.ToUpper();
+
+        if (model.Celular.Length > 0)
+        {
+            if (model.Celular.Length != 10)
+            {
+                await js.InvokeAsync<string>("MensajeAlerta", "El celular debe tener 11 digitos.");
+                return;
+            }
+        }
+
+        if (model.Email != null)
+        {
+            if (!model.Email.Contains("@"))
+            {
+                await js.InvokeAsync<string>("MensajeAlerta", "Email invalido.");
+                return;
+            }
+
+        }
+
+        if (imagePath != null)
+        {
+            model.FotoUrl = imagePath;
+        }
+
+        if (Id != 0)
+        {
+
+            var result = await Http.PutAsJsonAsync<Usuario>($"Usuarios", model);
+            response = result.Content.ReadFromJsonAsync<Response>().Result;
+        }
+        else
+        {
+            var result = await Http.PostAsJsonAsync<Usuario>($"Usuarios", model);
+            response = result.Content.ReadFromJsonAsync<Response>().Result;
+        }
+
+
+        if (response.IsSuccessful)
+        {
+            response = await Http.GetFromJsonAsync<Response>($"Usuarios/{singleton.EmpresaId}");
+            dialogService.Close(response);
+        }
+        else
+        {
+            await js.InvokeAsync<string>("MensajeAlerta", response.Message);
+        }
+
+    }
+
+    protected async Task Cancelar()
+    {
+        dialogService.Close();
+    }
+
+
+    protected async Task LoadData()
+    {
+        lstEstados = generico.getEstados();
+        if (Id > 0)
+        {
+            titulo = "EDITAR EMPLEADO";
+            response = await Http.GetFromJsonAsync<Response>($"Usuarios/{Id}");
+            if (response.IsSuccessful)
+            {
+                model = JsonConvert.DeserializeObject<Usuario>(response.Data.ToString());
+                if (model.FotoUrl != null)
+                {
+                    imagePath = model.FotoUrl;
+                }
+            }
+        }
+        else
+        {
+            titulo = "NUEVO EMPLEADO";
+        }
+    }
+
+
+
+
+    async Task HandleSelection(IFileListEntry[] files)
+    {
+        string rutaBase = "/Upload/Fotos";
+        imagePath = null;
+        var file = files.FirstOrDefault();
+        if (file != null)
+        {
+            var ms = new MemoryStream();
+            await file.Data.CopyToAsync(ms);
+            string extension = Path.GetExtension(file.Name);
+
+
+            if (model.FotoUrl != null)
+            {
+                FileModel objFile = new FileModel();
+                objFile.Ruta = $"{rutaBase}/{Path.GetFileName(model.FotoUrl)}";
+                var result = await Http.PostAsJsonAsync<FileModel>("Upload/EliminarRuta", objFile);
+
+            }
+
+
+            string filename = $"foto-{singleton.EmpresaId}-{DateTime.Now.Year}{DateTime.Now.Day}{DateTime.Now.Minute}{DateTime.Now.Second}{extension}";
+
+            var content = new MultipartFormDataContent
+{
+                    { new ByteArrayContent(ms.GetBuffer()),rutaBase,filename}
+                };
+
+            var response = await http.PostAsync("Upload", content);
+            string url = "..";
+            if (response.IsSuccessStatusCode)
+            {
+                var uploadFileName = await response.Content.ReadAsStringAsync();
+                if (uploadFileName != null)
+                {
+
+                    imagePath = $"{url}/{uploadFileName}";
+                    model.FotoUrl = imagePath;
+                    StateHasChanged();
+                }
+            }
+        }
+    }
+
+
+
+
+}

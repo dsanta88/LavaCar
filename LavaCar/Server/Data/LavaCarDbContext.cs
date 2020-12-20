@@ -16,6 +16,7 @@ namespace LavaCar.Server.Data
         public DbSet<TipoVehiculo> TiposVehiculos { get; set; }
         public DbSet<Servicio> Servicios { get; set; }
 
-        //public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Perfil> Perfiles { get; set; }
     }
 }

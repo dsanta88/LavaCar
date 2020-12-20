@@ -1,9 +1,10 @@
 ﻿@page "/tipovehiculo-form"
 @page "/tipovehiculo-form/{Id:int}/{SedeId}"
 @using LavaCar.Shared
+@using Newtonsoft.Json;
+@using Helpers
 @inject HttpClient Http
 @inject NavigationManager navigationManager
-@using Newtonsoft.Json;
 @inject IJSRuntime js
 @inject DialogService dialogService
 @inject ServicioSingleton singleton
@@ -62,11 +63,10 @@
     public TipoVehiculo model = new TipoVehiculo();
     Response response = new Response();
     public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
-
+    public Generico generico = new Generico();
 
     protected override async Task OnInitializedAsync()
     {
-        getEstados();
         await LoadData();
     }
 
@@ -111,6 +111,7 @@
 
     protected async Task LoadData()
     {
+        lstEstados = generico.getEstados();
         if (Id > 0)
         {
             response = await Http.GetFromJsonAsync<Response>($"TipoVehiculos/{Id}");
@@ -119,17 +120,6 @@
                 model = JsonConvert.DeserializeObject<TipoVehiculo>(response.Data.ToString());
             }
         }
-    }
-
-    public List<EstadoAuxiliar> getEstados()
-    {
-        lstEstados = new List<EstadoAuxiliar>
-{
-      new EstadoAuxiliar {  Codigo = "A", Descripcion= "ACTIVO" },
-      new EstadoAuxiliar { Codigo = "I", Descripcion = "INACTIVO" }
-      };
-
-        return lstEstados;
     }
 
 }

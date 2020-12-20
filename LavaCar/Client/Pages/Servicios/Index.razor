@@ -65,9 +65,7 @@
     [Parameter]
     public int TipoVehiculoId { get; set; }
 
-
     List<Servicio> list;
-    public int EmpresaId = 0;
     Response response = new Response();
 
     protected override async Task OnInitializedAsync()
@@ -136,6 +134,6 @@
 
     public void Retornar()
     {
-        navigationManager.NavigateTo($"/sede-index/{singleton.EmpresaId}");
+        navigationManager.NavigateTo($"/tipovehiculo-index/{TipoVehiculoId}");
     }
 }

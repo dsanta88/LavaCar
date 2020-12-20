@@ -1,15 +1,15 @@
 ﻿@page "/sede-form"
 @page "/sede-form/{Id:int}"
 @using LavaCar.Shared
-@inject HttpClient Http
-@inject NavigationManager navigationManager
 @using Newtonsoft.Json;
+@using Helpers
+@inject HttpClient http
 @inject IJSRuntime js
 @inject DialogService dialogService
 @inject ServicioSingleton singleton
-@using System.IO
-@using BlazorInputFile
-@inject HttpClient http
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
 
 <div class="row">
     <div class="col-md-12">
@@ -70,9 +70,9 @@
                     <div class="col-md-2">
                         <RadzenLabel Text="Estado" />
                     </div>
-                    <div class="col-md-8"> 
+                    <div class="col-md-8">
                         <RadzenDropDown AllowClear="true" AllowFiltering="true" Name="Estado" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="model.Estado" Multiple="false" Placeholder="Select..." Data="@lstEstados" TextProperty="Descripcion" ValueProperty="Codigo"
-                                        Style="margin-bottom: 20px; width:50%;" /><br/>
+                                        Style="margin-bottom: 20px; width:50%;" /><br />
                         <RadzenRequiredValidator Component="Estado" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
@@ -105,12 +105,11 @@
     public Sede model = new Sede();
     Response response = new Response();
     public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
-    bool popup;
+    public Generico generico = new Generico();
 
 
     protected override async Task OnInitializedAsync()
     {
-        getEstados();
         await LoadData();
     }
 
@@ -137,7 +136,7 @@
             }
         }
 
-        if(model.Email!=null)
+        if (model.Email != null)
         {
             if (!model.Email.Contains("@"))
             {
@@ -183,6 +182,7 @@
 
     protected async Task LoadData()
     {
+        lstEstados = generico.getEstados();
         if (Id > 0)
         {
             titulo = "EDITAR SEDE";
@@ -196,17 +196,6 @@
         {
             titulo = "NUEVA SEDE";
         }
-    }
-
-    public List<EstadoAuxiliar> getEstados()
-    {
-        lstEstados = new List<EstadoAuxiliar>
-      {
-      new EstadoAuxiliar {  Codigo = "A", Descripcion= "ACTIVO" },
-      new EstadoAuxiliar { Codigo = "I", Descripcion = "INACTIVO" }
-      };
-
-        return lstEstados;
     }
 
 }

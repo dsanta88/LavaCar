@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Upload\Logos\" />
+    <Folder Include="wwwroot\Upload\Fotos\" />
   </ItemGroup>
 
 

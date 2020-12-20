@@ -1,9 +1,10 @@
 ﻿@page "/servicio-form"
 @page "/servicio-form/{Id:int}/{TipoVehiculoId}"
 @using LavaCar.Shared
+@using Newtonsoft.Json;
+@using Helpers;
 @inject HttpClient Http
 @inject NavigationManager navigationManager
-@using Newtonsoft.Json;
 @inject IJSRuntime js
 @inject DialogService dialogService
 @inject ServicioSingleton singleton
@@ -39,7 +40,7 @@
                         <RadzenLabel Text="Descripción" />
                     </div>
                     <div class="col-md-8">
-                        <RadzenTextArea  MaxLength="100" style="width: 100%" @bind-Value="@(model.Descripcion)">
+                        <RadzenTextArea MaxLength="2000" style="width: 100%" @bind-Value="@(model.Descripcion)">
                         </RadzenTextArea><br />
                     </div>
                 </div>
@@ -82,11 +83,10 @@
     public Servicio model = new Servicio();
     Response response = new Response();
     public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
-
+    public Generico generico = new Generico();
 
     protected override async Task OnInitializedAsync()
     {
-        getEstados();
         await LoadData();
     }
 
@@ -131,6 +131,7 @@
 
     protected async Task LoadData()
     {
+        lstEstados = generico.getEstados();
         if (Id > 0)
         {
             response = await Http.GetFromJsonAsync<Response>($"Servicios/{Id}");
@@ -139,17 +140,6 @@
                 model = JsonConvert.DeserializeObject<Servicio>(response.Data.ToString());
             }
         }
-    }
-
-    public List<EstadoAuxiliar> getEstados()
-    {
-        lstEstados = new List<EstadoAuxiliar>
-{
-      new EstadoAuxiliar {  Codigo = "A", Descripcion= "ACTIVO" },
-      new EstadoAuxiliar { Codigo = "I", Descripcion = "INACTIVO" }
-      };
-
-        return lstEstados;
     }
 
 }

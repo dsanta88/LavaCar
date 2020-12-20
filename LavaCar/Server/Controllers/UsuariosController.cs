@@ -12,22 +12,54 @@ namespace LavaCar.Server.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class SedesController : ControllerBase
+    public class UsuariosController : ControllerBase
     {
         private readonly LavaCarDbContext db;
 
-        public SedesController(LavaCarDbContext context)
+        public UsuariosController(LavaCarDbContext context)
         {
             db = context;
         }
 
-        [HttpGet("[action]/{id}")]
-        public IActionResult GetSedesxEmpresa(int id)
+        [HttpGet("[action]/{sedeId}/{perfilCodigo}")]
+        public IActionResult GetUsuarioXSede(int sedeId, int perfilCodigo)
         {
             Response response = new Response();
             try
             {
-                List<Sede> list = db.Sedes.Where(s => s.EmpresaId == id).ToList();
+
+                var query = (from user in db.Usuarios
+                             join sed in db.Sedes on user.SedeId equals sed.Id
+                             join perf in db.Perfiles on user.PerfilCodigo equals perf.Codigo
+                             where sed.Id== sedeId && user.PerfilCodigo== perfilCodigo
+                             orderby user.NombreCompleto
+                             select new
+                             {
+                                 user.Id,
+                                 perfilNombre=perf.Nombre,
+                                 sedeNombre=sed.Nombre,
+                                 user.Email,
+                                 user.NombreCompleto,
+                                 user.Identificacion,
+                                 user.Celular,
+                                 user.Sexo,
+                                 user.Estado
+                               
+                             }).ToList();
+
+
+                List<Usuario> list = new List<Usuario>();
+                foreach(var item in query)
+                {
+                    Usuario user = new Usuario();
+                    user.Id = item.Id;
+                    user.SedeNombre = item.sedeNombre;
+                    user.PerfilNombre = item.perfilNombre;
+                    user.NombreCompleto = item.NombreCompleto;
+                    user.Email = item.Email;
+                    user.Celular = item.Celular;
+                    list.Add(user);
+                }
                 response.IsSuccessful = true;
                 response.Data = list;
             }
@@ -41,14 +73,14 @@ namespace LavaCar.Server.Controllers
 
 
         [HttpGet("{Id}")]
-        public IActionResult Get(int id)
+        public IActionResult Ge(int id)
         {
             Response response = new Response();
             try
             {
-                Sede emp = db.Sedes.Find(id);
+                Usuario user = db.Usuarios.Find(id);
                 response.IsSuccessful = true;
-                response.Data = emp;
+                response.Data = user;
             }
             catch (Exception ex)
             {

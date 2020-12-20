@@ -4,14 +4,16 @@ using LavaCar.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LavaCar.Server.Migrations
 {
     [DbContext(typeof(LavaCarDbContext))]
-    partial class LavaCarDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201219150317_Usuarios")]
+    partial class Usuarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,24 +46,6 @@ namespace LavaCar.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Empresas");
-                });
-
-            modelBuilder.Entity("LavaCar.Shared.Perfil", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
-
-                    b.Property<int>("Codigo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Nombre")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Perfiles");
                 });
 
             modelBuilder.Entity("LavaCar.Shared.Sede", b =>
@@ -158,16 +142,10 @@ namespace LavaCar.Server.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
-                    b.Property<string>("Celular")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Clave")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Direccion")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("EmpresaId")
