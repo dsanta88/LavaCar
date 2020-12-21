@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="wwwroot\Upload\Logos\" />
     <Folder Include="wwwroot\Upload\Fotos\" />
   </ItemGroup>

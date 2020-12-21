@@ -3,7 +3,7 @@ namespace LavaCar.Client
 {
     public class ServicioSingleton
     {
-        public int EmpleadoId { get; set; }
+        public int UsuarioId { get; set; }
         public string Nombre { get; set; }
 
         public string Email { get; set; }
@@ -20,11 +20,11 @@ namespace LavaCar.Client
 
         public ServicioSingleton()
         {
-            EmpleadoId = 0;
-            Nombre = "";
+            UsuarioId = 27;
+            Nombre = "DAVID SANTA";
             Email = "";
-            EmpresaId = 3;
-            SedeId = 1;
+            EmpresaId = 22;
+            SedeId = 11;
             EmpresaNombre = "";
             EmpresaLogo = "";
             IsLogueado = false;

@@ -106,7 +106,7 @@
     Response response = new Response();
     public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
     public Generico generico = new Generico();
-
+    string mensaje = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,55 +120,65 @@
         model.Nombre = model.Nombre.ToUpper();
         model.Direccion = model.Direccion.ToUpper();
 
-
-        if (model.Telefono.Length != 7)
+        try
         {
-            await js.InvokeAsync<string>("MensajeAlerta", "El télefono debe tener 7 digitos.");
-            return;
-        }
 
-        if (model.Celular.Length > 0)
-        {
-            if (model.Celular.Length != 10)
+            if (model.Telefono!=null && model.Telefono.Length != 7)
             {
-                await js.InvokeAsync<string>("MensajeAlerta", "El celular debe tener 11 digitos.");
-                return;
-            }
-        }
-
-        if (model.Email != null)
-        {
-            if (!model.Email.Contains("@"))
-            {
-                await js.InvokeAsync<string>("MensajeAlerta", "Email invalido.");
+                await js.InvokeAsync<string>("MensajeAlerta", "El télefono debe tener 7 digitos.");
                 return;
             }
 
+            if (model.Celular != null && model.Celular.Length > 0)
+            {
+                if (model.Celular.Length != 10)
+                {
+                    await js.InvokeAsync<string>("MensajeAlerta", "El celular debe tener 11 digitos.");
+                    return;
+                }
+            }
+
+            if (model.Email != null)
+
+
+
+            {
+                if (!model.Email.Contains("@"))
+                {
+                    await js.InvokeAsync<string>("MensajeAlerta", "Email invalido.");
+                    return;
+                }
+
+            }
+
+            if (Id != 0)
+            {
+                mensaje = $"El usuario {singleton.Nombre} módifico la información de la sede.";
+                var result = await Http.PutAsJsonAsync<Sede>($"Sedes", model);
+                response = result.Content.ReadFromJsonAsync<Response>().Result;
+            }
+            else
+            {
+                mensaje = $"El usuario {singleton.Nombre} ingreso la información de la sede.";
+                var result = await Http.PostAsJsonAsync<Sede>($"Sedes", model);
+                response = result.Content.ReadFromJsonAsync<Response>().Result;
+            }
+
+            if (response.IsSuccessful)
+            {
+                await GuardarLog("A", mensaje, null);
+                response = await Http.GetFromJsonAsync<Response>($"Sedes/GetSedesxEmpresa/{singleton.EmpresaId}");
+                dialogService.Close(response);
+            }
+            else
+            {
+                await js.InvokeAsync<string>("MensajeAlerta", response.Message);
+            }
         }
-
-
-
-        if (Id != 0)
+        catch(Exception ex)
         {
-
-            var result = await Http.PutAsJsonAsync<Sede>($"sedes", model);
-            response = result.Content.ReadFromJsonAsync<Response>().Result;
-        }
-        else
-        {
-
-            var result = await Http.PostAsJsonAsync<Sede>($"sedes", model);
-            response = result.Content.ReadFromJsonAsync<Response>().Result;
-        }
-
-        if (response.IsSuccessful)
-        {
-            response = await Http.GetFromJsonAsync<Response>($"sedes/GetSedesxEmpresa/{singleton.EmpresaId}");
-            dialogService.Close(response);
-        }
-        else
-        {
-            await js.InvokeAsync<string>("MensajeAlerta", response.Message);
+            await GuardarLog("E", null, ex);
+            await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
         }
     }
 
@@ -182,20 +192,52 @@
 
     protected async Task LoadData()
     {
-        lstEstados = generico.getEstados();
-        if (Id > 0)
+        try
         {
-            titulo = "EDITAR SEDE";
-            response = await Http.GetFromJsonAsync<Response>($"sedes/{Id}");
-            if (response.IsSuccessful)
+
+            lstEstados = generico.getEstados();
+            if (Id > 0)
             {
-                model = JsonConvert.DeserializeObject<Sede>(response.Data.ToString());
+                titulo = "EDITAR SEDE";
+                response = await Http.GetFromJsonAsync<Response>($"sedes/{Id}");
+                if (response.IsSuccessful)
+                {
+                    model = JsonConvert.DeserializeObject<Sede>(response.Data.ToString());
+                }
             }
+            else
+            {
+                titulo = "NUEVA SEDE";
+            }
+        }
+        catch (Exception ex)
+        {
+            await GuardarLog("E", null, ex);
+            await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
+        }
+    }
+
+
+    protected async Task GuardarLog(string tipo, string mensaje, Exception ex)
+    {
+        LogEvento log = new LogEvento();
+        log.UsuarioId = singleton.UsuarioId;
+        log.Fecha = DateTime.Now;
+        log.Tipo = tipo;
+        log.Campo1 = $"Id:{ model.Id};EmpresaId:{ model.EmpresaId};Nombre:{ model.Nombre}; Dirección: { model.Direccion}; Teléfono: { model.Telefono}; Celular: { model.Celular};Estado: { model.Estado}";
+
+        if (tipo == "E")
+        {
+            log.Mensaje = ex.Message;
+            log.Seguimiento = ex.StackTrace;
+            log.Fuente = ex.Source;
         }
         else
         {
-            titulo = "NUEVA SEDE";
+            log.Mensaje = mensaje;
         }
+
+        await Http.PostAsJsonAsync<LogEvento>($"LogEventos", log);
     }
 
 }

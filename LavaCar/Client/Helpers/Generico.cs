@@ -1,8 +1,7 @@
 ﻿using LavaCar.Shared;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace LavaCar.Client.Helpers
 {
@@ -10,15 +9,45 @@ namespace LavaCar.Client.Helpers
     {
         public List<EstadoAuxiliar> getEstados()
         {
-            List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
+            List<EstadoAuxiliar> lst = new List<EstadoAuxiliar>();
 
-            lstEstados = new List<EstadoAuxiliar>
-      {
-        new EstadoAuxiliar {  Codigo = "A", Descripcion= "ACTIVO" },
-        new EstadoAuxiliar { Codigo = "I", Descripcion = "INACTIVO" }
-      };
+            lst = new List<EstadoAuxiliar>
+        {
+           new EstadoAuxiliar {  Codigo = "A", Descripcion= "ACTIVO" },
+            new EstadoAuxiliar { Codigo = "I", Descripcion = "INACTIVO" }
+         };
 
-            return lstEstados;
+            return lst;
+        }
+
+
+        public List<Genero> getGeneros()
+        {
+            List<Genero> lst = new List<Genero>();
+
+            lst = new List<Genero>
+        {
+            new Genero {  Codigo = "M", Nombre= "MASCULINO" },
+            new Genero { Codigo = "F", Nombre = "FEMENINO" }
+         };
+
+            return lst;
+        }
+
+
+        public List<Perfil> getPerfiles()
+        {
+            List<Perfil> lst = new List<Perfil>();
+
+            lst = new List<Perfil>
+        {
+            new Perfil {  Codigo = 1, Descripcion= "ADMIN-GENERAL" },
+            new Perfil { Codigo = 2, Descripcion = "ADMIN-SEDE" },
+             new Perfil { Codigo = 3, Descripcion = "EMPLEADO" },
+              new Perfil { Codigo = 4, Descripcion = "CLIENTE" }
+         };
+
+            return lst;
         }
     }
 }

@@ -6,6 +6,7 @@
 @using Newtonsoft.Json;
 @*@inject IModalService modal*@
 @inject DialogService dialogService
+@inject IJSRuntime js
 
 <div class="row alert bg-info">
     <div class="col-md-5">
@@ -14,7 +15,7 @@
 </div>
 
 
-<RadzenButton Text=@("Nuevo") Click=@Add  ButtonStyle="ButtonStyle.Success"/>
+<RadzenButton Text=@("Nuevo") Click=@Add ButtonStyle="ButtonStyle.Success" />
 
 
 
@@ -82,11 +83,19 @@
 
     protected async Task LoadData()
     {
-        response = await Http.GetFromJsonAsync<Response>($"sedes/GetSedesxEmpresa/{IdEmpresa}");
-        if (response.IsSuccessful)
+        try
         {
-            list = JsonConvert.DeserializeObject<List<Sede>>(response.Data.ToString());
+            response = await Http.GetFromJsonAsync<Response>($"Sedes/GetSedesxEmpresa/{IdEmpresa}");
+            if (response.IsSuccessful)
+            {
+                list = JsonConvert.DeserializeObject<List<Sede>>(response.Data.ToString());
+            }
         }
+        catch (Exception ex)
+        {
+            await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
+        }
+
     }
 
 

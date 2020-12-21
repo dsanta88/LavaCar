@@ -5,6 +5,7 @@
 @inject DialogService dialogService
 @inject ServicioSingleton singleton
 @using Newtonsoft.Json
+@inject IJSRuntime js
 
 <div class="row alert bg-info">
     <div class="col-md-5">
@@ -49,7 +50,7 @@
 
         dialogService.Open<Form>("Editar Empresa",
         new Dictionary<string, object>() { { "Id", singleton.EmpresaId } },
-        new DialogOptions() { Width = "800px", Height = "700px"});
+        new DialogOptions() { Width = "800px", Height = "700px" });
 
         dialogService.OnClose += RelaodDashBoard;
 
@@ -57,7 +58,7 @@
 
     void RelaodDashBoard(dynamic result)
     {
-        if(result!=null)
+        if (result != null)
         {
             list = JsonConvert.DeserializeObject<List<Empresa>>(result.Data.ToString());
             StateHasChanged();
@@ -73,11 +74,19 @@
 
     protected async Task LoadData()
     {
-        response = await Http.GetFromJsonAsync<Response>($"Empresas/{singleton.EmpresaId}");
-        if (response.IsSuccessful)
+        try
         {
-            list = JsonConvert.DeserializeObject<List<Empresa>>(response.Data.ToString());
+            response = await Http.GetFromJsonAsync<Response>($"Empresas/{singleton.EmpresaId}");
+            if (response.IsSuccessful)
+            {
+                list = JsonConvert.DeserializeObject<List<Empresa>>(response.Data.ToString());
+            }
         }
+        catch (Exception ex)
+        {
+            await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
+        }
+
     }
 }
 

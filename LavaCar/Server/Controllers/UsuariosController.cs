@@ -30,31 +30,30 @@ namespace LavaCar.Server.Controllers
 
                 var query = (from user in db.Usuarios
                              join sed in db.Sedes on user.SedeId equals sed.Id
-                             join perf in db.Perfiles on user.PerfilCodigo equals perf.Codigo
-                             where sed.Id== sedeId && user.PerfilCodigo== perfilCodigo
+                             where sed.Id == sedeId && user.PerfilCodigo == perfilCodigo
                              orderby user.NombreCompleto
                              select new
                              {
                                  user.Id,
-                                 perfilNombre=perf.Nombre,
-                                 sedeNombre=sed.Nombre,
+                                 user.PerfilCodigo,
+                                 sedeNombre = sed.Nombre,
                                  user.Email,
                                  user.NombreCompleto,
                                  user.Identificacion,
                                  user.Celular,
                                  user.Sexo,
                                  user.Estado
-                               
+
                              }).ToList();
 
 
                 List<Usuario> list = new List<Usuario>();
-                foreach(var item in query)
+                foreach (var item in query)
                 {
                     Usuario user = new Usuario();
                     user.Id = item.Id;
                     user.SedeNombre = item.sedeNombre;
-                    user.PerfilNombre = item.perfilNombre;
+                    user.PerfilCodigo  = item.PerfilCodigo;
                     user.NombreCompleto = item.NombreCompleto;
                     user.Email = item.Email;
                     user.Celular = item.Celular;

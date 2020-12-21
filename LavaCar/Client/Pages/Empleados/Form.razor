@@ -30,12 +30,21 @@
                 <br />
                 <div class="row">
                     <div class="col-md-3">
+                        <RadzenLabel Text="Identificación" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenTextBox MaxLength="20" style="width: 100%" @bind-Value="@(model.Identificacion)" Name="Identificacion">
+                        </RadzenTextBox><br />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
                         <RadzenLabel Text="Dirección" />
                     </div>
                     <div class="col-md-8">
                         <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Direccion)" Name="Direccion">
                         </RadzenTextBox><br />
-                        <RadzenRequiredValidator Component="Direccion" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
                 <br />
@@ -44,9 +53,8 @@
                         <RadzenLabel Text="Email" />
                     </div>
                     <div class="col-md-8">
-                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Email)" Name="Email">
+                        <RadzenTextBox MaxLength="256" style="width: 100%" @bind-Value="@(model.Email)">
                         </RadzenTextBox><br />
-                        <RadzenRequiredValidator Component="Email" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
                 <br />
@@ -67,7 +75,6 @@
                     <div class="col-md-8">
                         <RadzenTextBox MaxLength="10" style="width: 100%" @bind-Value="@(model.Celular)" Name="Celular">
                         </RadzenTextBox><br />
-                        <RadzenRequiredValidator Component="Celular" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
                 <br />
@@ -83,12 +90,32 @@
                 <br />
                 <div class="row">
                     <div class="col-md-3">
+                        <RadzenLabel Text="Sexo" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenDropDown AllowClear="true" AllowFiltering="true" Name="Genero" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="model.Sexo" Multiple="false" Placeholder="Select..." Data="@lstGeneros" TextProperty="Nombre" ValueProperty="Codigo"
+                                        Style="margin-bottom: 20px; width:100%;" /><br />
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-3">
                         <RadzenLabel Text="Estado" />
                     </div>
                     <div class="col-md-8">
                         <RadzenDropDown AllowClear="true" AllowFiltering="true" Name="Estado" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="model.Estado" Multiple="false" Placeholder="Select..." Data="@lstEstados" TextProperty="Descripcion" ValueProperty="Codigo"
                                         Style="margin-bottom: 20px; width:100%;" /><br />
                         <RadzenRequiredValidator Component="Estado" Text="Campo Requerido" Style="position: absolute" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Text="Perfil" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenDropDown AllowClear="true" AllowFiltering="true" Name="Perfil" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Value="model.PerfilCodigo" Multiple="false" Placeholder="Select..." Data="@lstPerfiles" TextProperty="Descripcion" ValueProperty="Codigo"
+                                        Style="margin-bottom: 20px; width:100%;" /><br />
+                        <RadzenRequiredValidator Component="Perfil" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
                 <br />
@@ -140,6 +167,8 @@
     Response response = new Response();
     string imagePath = null;
     public List<EstadoAuxiliar> lstEstados = new List<EstadoAuxiliar>();
+    public List<Perfil> lstPerfiles = new List<Perfil>();
+    public List<Genero> lstGeneros = new List<Genero>();
     public Generico generico = new Generico();
 
     protected override async Task OnInitializedAsync()
@@ -151,53 +180,81 @@
     {
 
         model.NombreCompleto = model.NombreCompleto.ToUpper();
-        model.NombreCompleto = model.NombreCompleto.ToUpper();
+        model.FechaRegistro = DateTime.Now;
 
-        if (model.Celular.Length > 0)
+        try
         {
-            if (model.Celular.Length != 10)
-            {
-                await js.InvokeAsync<string>("MensajeAlerta", "El celular debe tener 11 digitos.");
-                return;
-            }
-        }
 
-        if (model.Email != null)
-        {
-            if (!model.Email.Contains("@"))
+            if (model.Celular != null)
             {
-                await js.InvokeAsync<string>("MensajeAlerta", "Email invalido.");
-                return;
+                if (model.Celular.Length > 0)
+                {
+                    if (model.Celular.Length != 10)
+                    {
+                        await js.InvokeAsync<string>("MensajeAlerta", "El celular debe tener 10 digitos.");
+                        return;
+                    }
+                }
             }
 
-        }
+            if (model.Email != null)
+            {
+                if (!model.Email.Contains("@"))
+                {
+                    await js.InvokeAsync<string>("MensajeAlerta", "Email invalido.");
+                    return;
+                }
+                else
+                {
+                    if (model.Clave == null)
+                    {
+                        model.Clave = "123456";
+                    }
+                }
 
-        if (imagePath != null)
-        {
-            model.FotoUrl = imagePath;
-        }
+            }
 
-        if (Id != 0)
-        {
+            if (model.PerfilCodigo <= 0)
+            {
+                await js.InvokeAsync<string>("MensajeAlerta", "Debe seleccionar el perfil.");
+                return;
 
-            var result = await Http.PutAsJsonAsync<Usuario>($"Usuarios", model);
-            response = result.Content.ReadFromJsonAsync<Response>().Result;
-        }
-        else
-        {
-            var result = await Http.PostAsJsonAsync<Usuario>($"Usuarios", model);
-            response = result.Content.ReadFromJsonAsync<Response>().Result;
-        }
+            }
+
+            if (imagePath != null)
+            {
+                model.FotoUrl = imagePath;
+            }
+
+            if (Id != 0)
+            {
+
+                var result = await Http.PutAsJsonAsync<Usuario>($"Usuarios", model);
+                response = result.Content.ReadFromJsonAsync<Response>().Result;
+            }
+            else
+            {
+                model.EmpresaId = singleton.EmpresaId;
+                model.SedeId = singleton.SedeId;
+                var result = await Http.PostAsJsonAsync<Usuario>($"Usuarios", model);
+                response = result.Content.ReadFromJsonAsync<Response>().Result;
+            }
 
 
-        if (response.IsSuccessful)
-        {
-            response = await Http.GetFromJsonAsync<Response>($"Usuarios/{singleton.EmpresaId}");
-            dialogService.Close(response);
+            if (response.IsSuccessful)
+            {
+                response = await Http.GetFromJsonAsync<Response>($"Usuarios/GetUsuarioXSede/{singleton.SedeId}/{1}");
+                dialogService.Close(response);
+            }
+            else
+            {
+                await js.InvokeAsync<string>("MensajeAlerta", response.Message);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await js.InvokeAsync<string>("MensajeAlerta", response.Message);
+            await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
+            return;
         }
 
     }
@@ -210,23 +267,33 @@
 
     protected async Task LoadData()
     {
-        lstEstados = generico.getEstados();
-        if (Id > 0)
+        try
         {
-            titulo = "EDITAR EMPLEADO";
-            response = await Http.GetFromJsonAsync<Response>($"Usuarios/{Id}");
-            if (response.IsSuccessful)
+            lstEstados = generico.getEstados();
+            lstGeneros = generico.getGeneros();
+            lstPerfiles = generico.getPerfiles();
+
+            if (Id > 0)
             {
-                model = JsonConvert.DeserializeObject<Usuario>(response.Data.ToString());
-                if (model.FotoUrl != null)
+                titulo = "EDITAR EMPLEADO";
+                response = await Http.GetFromJsonAsync<Response>($"Usuarios/{Id}");
+                if (response.IsSuccessful)
                 {
-                    imagePath = model.FotoUrl;
+                    model = JsonConvert.DeserializeObject<Usuario>(response.Data.ToString());
+                    if (model.FotoUrl != null)
+                    {
+                        imagePath = model.FotoUrl;
+                    }
                 }
             }
+            else
+            {
+                titulo = "NUEVO EMPLEADO";
+            }
         }
-        else
+        catch(Exception ex)
         {
-            titulo = "NUEVO EMPLEADO";
+            await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
         }
     }
 
@@ -276,8 +343,5 @@
             }
         }
     }
-
-
-
 
 }

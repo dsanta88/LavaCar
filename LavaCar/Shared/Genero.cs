@@ -4,10 +4,9 @@ using System.Text;
 
 namespace LavaCar.Shared
 {
-   public class Perfil
+  public  class Genero
     {
-        public int Codigo { get; set; }
-        public string Descripcion { get; set; }
-
+        public string Codigo { get; set; }
+        public string Nombre { get; set; }
     }
 }

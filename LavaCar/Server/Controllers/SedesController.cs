@@ -78,7 +78,7 @@ namespace LavaCar.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(Usuario model)
+        public IActionResult Edit(Sede model)
         {
             Response response = new Response();
             try
