@@ -17,9 +17,7 @@ namespace LavaCar.Server.Controllers
     {
         private readonly LavaCarDbContext db;
 
-
-
-        public EmpresasController(LavaCarDbContext context)
+       public EmpresasController(LavaCarDbContext context)
         {
             db = context;
         }

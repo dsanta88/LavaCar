@@ -42,7 +42,8 @@ namespace LavaCar.Server.Controllers
                                  user.Identificacion,
                                  user.Celular,
                                  user.Sexo,
-                                 user.Estado
+                                 user.Estado,
+                                 user.FotoUrl
 
                              }).ToList();
 
@@ -57,6 +58,8 @@ namespace LavaCar.Server.Controllers
                     user.NombreCompleto = item.NombreCompleto;
                     user.Email = item.Email;
                     user.Celular = item.Celular;
+                    user.Estado = item.Estado;
+                    user.FotoUrl = item.FotoUrl;
                     list.Add(user);
                 }
                 response.IsSuccessful = true;

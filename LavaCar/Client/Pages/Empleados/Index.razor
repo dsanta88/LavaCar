@@ -18,6 +18,11 @@
 <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="20"
             AllowSorting="true" Data="@list" TItem="Usuario" ColumnWidth="200px">
     <Columns>
+        <RadzenGridColumn TItem="Usuario" Property="FotoUrl" Title="Foto" Width="30%">
+            <Template Context="model">
+                <RadzenImage Path="@model.FotoUrl" Style="width:70px" />
+            </Template>
+        </RadzenGridColumn>
         <RadzenGridColumn TItem="Usuario" Property="NombreCompleto" Title="Nombre" Width="50%"></RadzenGridColumn>
         <RadzenGridColumn TItem="Usuario" Property="Email" Title="Email" Width="50%"></RadzenGridColumn>
         <RadzenGridColumn TItem="Usuario" Property="Celular" Title="Celular" Width="40%"></RadzenGridColumn>
@@ -36,7 +41,6 @@
                                     TValue="bool">
                     </RadzenCheckBox>
                 }
-
             </Template>
         </RadzenGridColumn>
         <RadzenGridColumn TItem="Usuario" Property="SedeNombre" Title="Sede" Width="50%"></RadzenGridColumn>
@@ -66,12 +70,17 @@
 
     public void Add()
     {
-        OpenForm(0, "NuevO Empleado");
+        OpenForm(0, "Nuevo Empleado");
     }
 
     void Edit(int id)
     {
         OpenForm(id, "Editar Empleado");
+    }
+
+    void Delete(int id)
+    {
+        OpenForm(id, "Eliminar Empleado");
     }
 
 
@@ -92,16 +101,6 @@
             StateHasChanged();
         }
 
-    }
-
-    public void Sedes(int id)
-    {
-        navigationManager.NavigateTo("/sede-index/" + id);
-    }
-
-    public void Delete(int id)
-    {
-        navigationManager.NavigateTo("/sede-index/" + id);
     }
 
     protected async Task LoadData()

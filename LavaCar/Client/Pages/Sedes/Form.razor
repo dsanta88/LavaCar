@@ -224,7 +224,7 @@
         log.UsuarioId = singleton.UsuarioId;
         log.Fecha = DateTime.Now;
         log.Tipo = tipo;
-        log.Campo1 = $"Id:{ model.Id};EmpresaId:{ model.EmpresaId};Nombre:{ model.Nombre}; Dirección: { model.Direccion}; Teléfono: { model.Telefono}; Celular: { model.Celular};Estado: { model.Estado}";
+        log.Campo1 = JsonConvert.SerializeObject(model);
 
         if (tipo == "E")
         {

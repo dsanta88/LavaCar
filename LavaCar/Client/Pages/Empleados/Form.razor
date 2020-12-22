@@ -108,6 +108,7 @@
                         <RadzenRequiredValidator Component="Estado" Text="Campo Requerido" Style="position: absolute" />
                     </div>
                 </div>
+                <br />
                 <div class="row">
                     <div class="col-md-3">
                         <RadzenLabel Text="Perfil" />
@@ -160,9 +161,9 @@
 <br />
 @code {
 
-    [Parameter]
-    public int Id { get; set; }
-    string titulo = "";
+     [Parameter]
+     public int Id { get; set; }
+     string titulo = "";
     public Usuario model = new Usuario();
     Response response = new Response();
     string imagePath = null;
@@ -170,6 +171,7 @@
     public List<Perfil> lstPerfiles = new List<Perfil>();
     public List<Genero> lstGeneros = new List<Genero>();
     public Generico generico = new Generico();
+    string mensaje = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -211,7 +213,6 @@
                         model.Clave = "123456";
                     }
                 }
-
             }
 
             if (model.PerfilCodigo <= 0)
@@ -228,7 +229,7 @@
 
             if (Id != 0)
             {
-
+                mensaje = $"El usuario {singleton.Nombre} modificó la información del usuario.";
                 var result = await Http.PutAsJsonAsync<Usuario>($"Usuarios", model);
                 response = result.Content.ReadFromJsonAsync<Response>().Result;
             }
@@ -236,6 +237,7 @@
             {
                 model.EmpresaId = singleton.EmpresaId;
                 model.SedeId = singleton.SedeId;
+                mensaje = $"El usuario {singleton.Nombre} ingreso la información del usuario.";
                 var result = await Http.PostAsJsonAsync<Usuario>($"Usuarios", model);
                 response = result.Content.ReadFromJsonAsync<Response>().Result;
             }
@@ -243,6 +245,7 @@
 
             if (response.IsSuccessful)
             {
+                await GuardarLog("A", mensaje, null);
                 response = await Http.GetFromJsonAsync<Response>($"Usuarios/GetUsuarioXSede/{singleton.SedeId}/{1}");
                 dialogService.Close(response);
             }
@@ -253,6 +256,7 @@
         }
         catch (Exception ex)
         {
+            await GuardarLog("E", null, ex);
             await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
             return;
         }
@@ -291,9 +295,11 @@
                 titulo = "NUEVO EMPLEADO";
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
+            await GuardarLog("E", null, ex);
             await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
+            return;
         }
     }
 
@@ -302,46 +308,79 @@
 
     async Task HandleSelection(IFileListEntry[] files)
     {
-        string rutaBase = "/Upload/Fotos";
-        imagePath = null;
-        var file = files.FirstOrDefault();
-        if (file != null)
+        try
         {
-            var ms = new MemoryStream();
-            await file.Data.CopyToAsync(ms);
-            string extension = Path.GetExtension(file.Name);
-
-
-            if (model.FotoUrl != null)
+            string rutaBase = "/Upload/Fotos";
+            imagePath = null;
+            var file = files.FirstOrDefault();
+            if (file != null)
             {
-                FileModel objFile = new FileModel();
-                objFile.Ruta = $"{rutaBase}/{Path.GetFileName(model.FotoUrl)}";
-                var result = await Http.PostAsJsonAsync<FileModel>("Upload/EliminarRuta", objFile);
-
-            }
+                var ms = new MemoryStream();
+                await file.Data.CopyToAsync(ms);
+                string extension = Path.GetExtension(file.Name);
 
 
-            string filename = $"foto-{singleton.EmpresaId}-{DateTime.Now.Year}{DateTime.Now.Day}{DateTime.Now.Minute}{DateTime.Now.Second}{extension}";
+                if (model.FotoUrl != null)
+                {
+                    FileModel objFile = new FileModel();
+                    objFile.Ruta = $"{rutaBase}/{Path.GetFileName(model.FotoUrl)}";
+                    var result = await Http.PostAsJsonAsync<FileModel>("Upload/EliminarRuta", objFile);
 
-            var content = new MultipartFormDataContent
+                }
+
+
+                string filename = $"foto-{singleton.EmpresaId}-{DateTime.Now.Year}{DateTime.Now.Day}{DateTime.Now.Minute}{DateTime.Now.Second}{extension}";
+
+                var content = new MultipartFormDataContent
 {
                     { new ByteArrayContent(ms.GetBuffer()),rutaBase,filename}
                 };
 
-            var response = await http.PostAsync("Upload", content);
-            string url = "..";
-            if (response.IsSuccessStatusCode)
-            {
-                var uploadFileName = await response.Content.ReadAsStringAsync();
-                if (uploadFileName != null)
+                var response = await http.PostAsync("Upload", content);
+                string url = "..";
+                if (response.IsSuccessStatusCode)
                 {
+                    var uploadFileName = await response.Content.ReadAsStringAsync();
+                    if (uploadFileName != null)
+                    {
 
-                    imagePath = $"{url}/{uploadFileName}";
-                    model.FotoUrl = imagePath;
-                    StateHasChanged();
+                        imagePath = $"{url}/{uploadFileName}";
+                        model.FotoUrl = imagePath;
+                        StateHasChanged();
+                    }
                 }
             }
         }
+        catch (Exception ex)
+        {
+            await GuardarLog("E", null, ex);
+            await js.InvokeAsync<string>("MensajeAlerta", ex.Message);
+            return;
+        }
+    }
+
+    protected async Task GuardarLog(string tipo, string mensaje, Exception ex)
+    {
+
+
+        LogEvento log = new LogEvento();
+        log.UsuarioId = singleton.UsuarioId;
+        log.Fecha = DateTime.Now;
+        log.Tipo = tipo;
+        log.Campo1 = JsonConvert.SerializeObject(model);
+
+        if (tipo == "E")
+        {
+            log.Mensaje = ex.Message;
+            log.Seguimiento = ex.StackTrace;
+            log.Fuente = ex.Source;
+        }
+        else
+        {
+            log.Mensaje = mensaje;
+        }
+
+        await Http.PostAsJsonAsync<LogEvento>($"LogEventos", log);
     }
 
 }
